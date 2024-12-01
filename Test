@@ -1,0 +1,108 @@
+-- Load LinoriaLib from GitHub
+local LibraryUrl = "https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/refs/heads/main/Library.lua"
+local HttpService = game:GetService("HttpService")
+
+function loadLibrary()
+    local response = HttpService:GetAsync(LibraryUrl)
+    local chunk = loadstring(response)
+    return chunk and chunk() or nil
+end
+
+local Library = loadLibrary()
+
+local InputService = game:GetService('UserInputService')
+local TextService = game:GetService('TextService')
+local CoreGui = game:GetService('CoreGui')
+local Teams = game:GetService('Teams')
+local Players = game:GetService('Players')
+local RunService = game:GetService('RunService')
+local TweenService = game:GetService('TweenService')
+local RenderStepped = RunService.RenderStepped
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local ProtectGui = protectgui or (syn and syn.protect_gui) or (function() end)
+
+local ScreenGui = Instance.new('ScreenGui')
+ProtectGui(ScreenGui)
+
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+ScreenGui.Parent = CoreGui
+
+local Toggles = {}
+local Options = {}
+
+getgenv().Toggles = Toggles
+getgenv().Options = Options
+
+-- Initialize the library
+Library.ScreenGui = ScreenGui
+Library:GiveSignal(ScreenGui.DescendantRemoving:Connect(function(Instance)
+    if Library.RegistryMap[Instance] then
+        Library:RemoveFromRegistry(Instance)
+    end
+end))
+
+-- Rainbow effect setup
+local RainbowStep = 0
+local Hue = 0
+
+table.insert(Library.Signals, RenderStepped:Connect(function(Delta)
+    RainbowStep = RainbowStep + Delta
+
+    if RainbowStep >= (1 / 60) then
+        RainbowStep = 0
+        Hue = Hue + (1 / 400)
+
+        if Hue > 1 then
+            Hue = 0
+        end
+
+        Library.CurrentRainbowHue = Hue
+        Library.CurrentRainbowColor = Color3.fromHSV(Hue, 0.8, 1)
+    end
+end))
+
+-- Function to get players as a sorted string list
+local function GetPlayersString()
+    local PlayerList = Players:GetPlayers()
+
+    for i = 1, #PlayerList do
+        PlayerList[i] = PlayerList[i].Name
+    end
+
+    table.sort(PlayerList, function(str1, str2) return str1 < str2 end)
+
+    return PlayerList
+end
+
+-- Function to get teams as a sorted string list
+local function GetTeamsString()
+    local TeamList = Teams:GetTeams()
+
+    for i = 1, #TeamList do
+        TeamList[i] = TeamList[i].Name
+    end
+
+    table.sort(TeamList, function(str1, str2) return str1 < str2 end)
+
+    return TeamList
+end
+
+-- Implement additional functionalities or UI elements using Library functions here as needed
+
+-- Example of creating a new UI element using the library
+local function createExampleLabel()
+    local ExampleLabel = Library:CreateLabel({
+        Position = UDim2.new(0.5, -50, 0.5, -25),
+        Size = UDim2.new(0, 100, 0, 50),
+        Text = "Hello, world!",
+        TextColor3 = Library.FontColor,
+    }, false)
+
+    ExampleLabel.Parent = ScreenGui
+end
+
+createExampleLabel()
+
+-- Add any other additional functionality here
